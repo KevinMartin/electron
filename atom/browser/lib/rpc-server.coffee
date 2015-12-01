@@ -37,6 +37,16 @@ valueToMeta = (sender, value, optimizeSimpleObject=false) ->
     meta.id = objectsRegistry.add sender.getId(), value
 
     meta.members = ({name, type: typeof field} for name, field of value)
+
+    proto = Object.getPrototypeOf value
+
+    # Support ES6 classes
+    if proto.constructor is Function
+      members = Object.getOwnPropertyNames value
+      meta.members.push ({name, type: typeof value[name]} for name in members)...
+    if proto.constructor isnt Object
+      members = Object.getOwnPropertyNames(Object.getPrototypeOf(value))
+      meta.members.push ({name, type: typeof value[name]} for name in members)...
   else if meta.type is 'buffer'
     meta.value = Array::slice.call value, 0
   else if meta.type is 'promise'
